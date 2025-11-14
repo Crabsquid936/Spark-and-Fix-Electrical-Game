@@ -1,0 +1,1310 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Electrician Shop Game</title>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Roboto', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100%;
+            color: #333;
+        }
+        
+        .shop-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .shop-header {
+            background: #2c3e50;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .shop-title {
+            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+            font-weight: bold;
+        }
+        
+        .welcome-text {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+        
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            min-height: 500px;
+        }
+        
+        .inventory-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            text-align: center;
+        }
+        
+        .part-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            margin: 8px 0;
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .part-item:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            transform: translateY(-2px);
+        }
+        
+        .part-item.selected {
+            background: #2196f3;
+            color: white;
+            border-color: #1976d2;
+        }
+        
+        .part-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+        
+        .part-info {
+            flex: 1;
+        }
+        
+        .part-name {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .part-spec {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        .work-area {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            text-align: center;
+        }
+        
+        .customer-card {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ff6b6b;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .customer-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .problem-description {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .circuit-display {
+            background: #2c3e50;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            position: relative;
+        }
+        
+        .circuit-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        
+        .circuit-element {
+            margin: 0 15px;
+            text-align: center;
+            color: #ffffff;
+        }
+        
+        .circuit-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .circuit-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .wire {
+            height: 3px;
+            background: #ffd700;
+            flex: 1;
+            margin: 0 10px;
+            align-self: center;
+        }
+        
+        .wire-vertical {
+            width: 3px;
+            height: 40px;
+            background: #ffd700;
+            margin: 0 auto;
+        }
+        
+        .circuit-element.center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .circuit-element.optional {
+            opacity: 0.5;
+        }
+        
+        .circuit-element.optional .circuit-label::after {
+            content: " (Optional)";
+            font-size: 0.7rem;
+            color: #ffd700;
+        }
+        
+        .bulb-glow {
+            animation: glow 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #ffeb3b; }
+            to { text-shadow: 0 0 20px #ffeb3b, 0 0 30px #ffeb3b; }
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #f57c00;
+            transform: translateY(-2px);
+        }
+        
+        .btn-hint {
+            background: #9c27b0;
+            color: white;
+        }
+        
+        .btn-hint:hover {
+            background: #7b1fa2;
+            transform: translateY(-2px);
+        }
+        
+        .hint-display {
+            background: #fff3e0;
+            border: 2px solid #ff9800;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .hint-content {
+            color: #e65100;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .money-display {
+            background: #4caf50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .money-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .jobs-completed {
+            text-align: center;
+            color: #666;
+        }
+        
+        .new-customer-btn {
+            width: 100%;
+            margin-top: 15px;
+        }
+        
+        .feedback-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .shop-title {
+                font-size: 2rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="shop-container">
+   <div class="shop-header">
+    <h1 class="shop-title" id="shopTitle">⚡ Spark &amp; Fix Electrical</h1>
+    <p class="welcome-text" id="welcomeMessage">Expert electrical repairs - We'll get your lights shining bright!</p>
+   </div>
+   <div class="game-area"><!-- Inventory Panel -->
+    <div class="inventory-panel">
+     <h3 class="panel-title">🔧 Parts Inventory</h3>
+     <div class="part-item" data-part="power-battery-1.5v"><span class="part-icon">🔋</span>
+      <div class="part-info">
+       <div class="part-name">
+        Battery
+       </div>
+       <div class="part-spec">
+        1.5V DC
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="power-battery-9v"><span class="part-icon">🔋</span>
+      <div class="part-info">
+       <div class="part-name">
+        Battery
+       </div>
+       <div class="part-spec">
+        9V DC
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="power-outlet-120v"><span class="part-icon">🔌</span>
+      <div class="part-info">
+       <div class="part-name">
+        Wall Outlet
+       </div>
+       <div class="part-spec">
+        120V AC
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="power-outlet-240v"><span class="part-icon">⚡</span>
+      <div class="part-info">
+       <div class="part-name">
+        High Voltage Outlet
+       </div>
+       <div class="part-spec">
+        240V AC
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="cord-standard"><span class="part-icon">🔗</span>
+      <div class="part-info">
+       <div class="part-name">
+        Power Cord
+       </div>
+       <div class="part-spec">
+        Standard 15A
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="cord-heavy"><span class="part-icon">🔗</span>
+      <div class="part-info">
+       <div class="part-name">
+        Heavy Duty Cord
+       </div>
+       <div class="part-spec">
+        20A Rating
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="resistor-100"><span class="part-icon">⚡</span>
+      <div class="part-info">
+       <div class="part-name">
+        Resistor
+       </div>
+       <div class="part-spec">
+        100Ω
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="resistor-220"><span class="part-icon">⚡</span>
+      <div class="part-info">
+       <div class="part-name">
+        Resistor
+       </div>
+       <div class="part-spec">
+        220Ω
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="device-bulb-3w"><span class="part-icon">💡</span>
+      <div class="part-info">
+       <div class="part-name">
+        LED Bulb
+       </div>
+       <div class="part-spec">
+        3W
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="device-bulb-5w"><span class="part-icon">💡</span>
+      <div class="part-info">
+       <div class="part-name">
+        LED Bulb
+       </div>
+       <div class="part-spec">
+        5W
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="device-bulb-10w"><span class="part-icon">💡</span>
+      <div class="part-info">
+       <div class="part-name">
+        LED Bulb
+       </div>
+       <div class="part-spec">
+        10W
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="device-fan-small"><span class="part-icon">🌀</span>
+      <div class="part-info">
+       <div class="part-name">
+        Fan
+       </div>
+       <div class="part-spec">
+        Small
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="device-fan-large"><span class="part-icon">🌀</span>
+      <div class="part-info">
+       <div class="part-name">
+        Fan
+       </div>
+       <div class="part-spec">
+        Large
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="device-fire-small"><span class="part-icon">🔥</span>
+      <div class="part-info">
+       <div class="part-name">
+        Electric Heater
+       </div>
+       <div class="part-spec">
+        Small
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="device-fire-medium"><span class="part-icon">🔥</span>
+      <div class="part-info">
+       <div class="part-name">
+        Electric Heater
+       </div>
+       <div class="part-spec">
+        Medium
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="device-microwave-small"><span class="part-icon">📱</span>
+      <div class="part-info">
+       <div class="part-name">
+        Microwave
+       </div>
+       <div class="part-spec">
+        Small
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="device-microwave-large"><span class="part-icon">📱</span>
+      <div class="part-info">
+       <div class="part-name">
+        Microwave
+       </div>
+       <div class="part-spec">
+        Large
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="thermistor-ntc"><span class="part-icon">🌡️</span>
+      <div class="part-info">
+       <div class="part-name">
+        Thermistor
+       </div>
+       <div class="part-spec">
+        NTC Protection
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="thermistor-ptc"><span class="part-icon">🌡️</span>
+      <div class="part-info">
+       <div class="part-name">
+        Thermistor
+       </div>
+       <div class="part-spec">
+        PTC Protection
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="capacitor-10uf"><span class="part-icon">🔌</span>
+      <div class="part-info">
+       <div class="part-name">
+        Capacitor
+       </div>
+       <div class="part-spec">
+        10µF
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="capacitor-100uf"><span class="part-icon">🔌</span>
+      <div class="part-info">
+       <div class="part-name">
+        Capacitor
+       </div>
+       <div class="part-spec">
+        100µF
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="button-momentary"><span class="part-icon">🔘</span>
+      <div class="part-info">
+       <div class="part-name">
+        Push Button
+       </div>
+       <div class="part-spec">
+        Momentary
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="button-toggle"><span class="part-icon">🔘</span>
+      <div class="part-info">
+       <div class="part-name">
+        Toggle Button
+       </div>
+       <div class="part-spec">
+        Latching
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="switch-spst"><span class="part-icon">🎚️</span>
+      <div class="part-info">
+       <div class="part-name">
+        Light Switch
+       </div>
+       <div class="part-spec">
+        SPST
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="switch-dpdt"><span class="part-icon">🎚️</span>
+      <div class="part-info">
+       <div class="part-name">
+        Light Switch
+       </div>
+       <div class="part-spec">
+        DPDT
+       </div>
+      </div>
+     </div>
+    </div><!-- Work Area -->
+    <div class="work-area">
+     <div id="customerCard" class="customer-card" style="display: none;">
+      <div class="customer-name" id="customerName"></div>
+      <div class="problem-description" id="problemDescription"></div>
+     </div>
+     <div class="circuit-display" id="circuitDisplay">
+      <div class="circuit-row">
+       <div class="circuit-element" id="powerElement"><span class="circuit-icon" id="powerIcon">⚡</span>
+        <div class="circuit-label" id="powerLabel">
+         Select Power Source
+        </div>
+       </div>
+       <div class="wire"></div>
+       <div class="circuit-element" id="cordElement"><span class="circuit-icon" id="cordIcon">🔗</span>
+        <div class="circuit-label" id="cordLabel">
+         Select Power Cord
+        </div>
+       </div>
+       <div class="wire"></div>
+       <div class="circuit-element" id="switchElement"><span class="circuit-icon" id="switchIcon">🎚️</span>
+        <div class="circuit-label" id="switchLabel">
+         Select Switch
+        </div>
+       </div>
+      </div>
+      <div class="circuit-row">
+       <div class="circuit-element" id="buttonElement"><span class="circuit-icon" id="buttonIcon">🔘</span>
+        <div class="circuit-label" id="buttonLabel">
+         Select Button
+        </div>
+       </div>
+       <div class="wire"></div>
+       <div class="circuit-element" id="resistorElement"><span class="circuit-icon" id="resistorIcon">⚡</span>
+        <div class="circuit-label" id="resistorLabel">
+         Select Resistor
+        </div>
+       </div>
+       <div class="wire"></div>
+       <div class="circuit-element" id="thermistorElement"><span class="circuit-icon" id="thermistorIcon">🌡️</span>
+        <div class="circuit-label" id="thermistorLabel">
+         Select Thermistor
+        </div>
+       </div>
+      </div>
+      <div class="circuit-row">
+       <div class="circuit-element" id="capacitorElement"><span class="circuit-icon" id="capacitorIcon">🔌</span>
+        <div class="circuit-label" id="capacitorLabel">
+         Select Capacitor
+        </div>
+       </div>
+       <div class="wire"></div>
+       <div class="circuit-element center" id="deviceElement"><span class="circuit-icon" id="deviceIcon">💡</span>
+        <div class="circuit-label" id="deviceLabel">
+         Select Device
+        </div>
+       </div>
+       <div class="wire"></div>
+      </div>
+     </div>
+     <div id="feedbackMessage"></div>
+     <div class="action-buttons"><button class="btn btn-primary" id="testCircuitBtn" disabled>🔍 Test Circuit</button> <button class="btn btn-secondary" id="completeJobBtn" disabled>✅ Complete Job</button> <button class="btn btn-hint" id="buyHintBtn">💡 Buy Hint ($100)</button>
+     </div>
+     <div id="hintDisplay" class="hint-display" style="display: none;">
+      <div class="hint-content" id="hintContent"></div>
+     </div>
+    </div><!-- Status Panel -->
+    <div class="status-panel">
+     <div class="money-display">
+      <div>
+       💰 Earnings
+      </div>
+      <div class="money-amount" id="moneyAmount">
+       $0
+      </div>
+     </div>
+     <div class="jobs-completed"><strong>Jobs Completed: <span id="jobsCount">0</span></strong>
+     </div><button class="btn btn-primary new-customer-btn" id="newCustomerBtn">👥 New Customer</button>
+    </div>
+   </div>
+  </div>
+  <script>
+        // Default configuration
+        const defaultConfig = {
+            shop_name: "⚡ Spark & Fix Electrical",
+            welcome_message: "Expert electrical repairs - We'll get your lights shining bright!"
+        };
+
+        // Game state
+        let currentCustomer = null;
+        let selectedParts = {
+            power: null,
+            cord: null,
+            resistor: null,
+            device: null,
+            thermistor: null,
+            capacitor: null,
+            button: null,
+            switch: null
+        };
+        let totalEarnings = 0;
+        let jobsCompleted = 0;
+        let gameData = [];
+        let hintsUsed = 0;
+
+        // Customer problems and solutions
+        const customerProblems = [
+            {
+                name: "Mrs. Johnson",
+                problem: "My reading lamp just needs a simple on/off switch. It plugs into the wall.",
+                solution: { power: "outlet-120v", device: "bulb-10w", switch: "spst" },
+                required: ["power", "device", "switch"],
+                payment: 45,
+                hints: [
+                    "Table lamps use standard wall outlets",
+                    "Simple switches work great for lamps",
+                    "No extra components needed for basic lighting"
+                ]
+            },
+            {
+                name: "Bob the Builder",
+                problem: "Need a portable battery-powered fan with momentary button - press to run, release to stop.",
+                solution: { power: "battery-9v", device: "fan-small", button: "momentary" },
+                required: ["power", "device", "button"],
+                payment: 55,
+                hints: [
+                    "Portable tools use battery power",
+                    "Momentary buttons are perfect for temporary operation",
+                    "Small fans work well with 9V battery power"
+                ]
+            },
+            {
+                name: "Sarah's Café",
+                problem: "Our electric fireplace heater needs thermal protection. It's a high-power wall unit.",
+                solution: { power: "outlet-240v", device: "fire-medium", thermistor: "ntc", switch: "spst" },
+                required: ["power", "device", "thermistor", "switch"],
+                payment: 95,
+                hints: [
+                    "Electric heaters use high voltage for efficiency",
+                    "240V outlets provide more power than standard outlets",
+                    "NTC thermistors prevent overheating"
+                ]
+            },
+            {
+                name: "Tom's Workshop",
+                problem: "My countertop microwave keeps tripping the breaker. Need proper power connection and protection.",
+                solution: { power: "outlet-120v", cord: "heavy", device: "microwave-small", thermistor: "ptc" },
+                required: ["power", "cord", "device", "thermistor"],
+                payment: 85,
+                hints: [
+                    "Microwaves need heavy-duty power cords",
+                    "PTC thermistors protect against thermal runaway",
+                    "High-current appliances need proper wiring"
+                ]
+            },
+            {
+                name: "Emma's Art Studio",
+                problem: "Need a ceiling fan with wall switch control - different speeds and momentary boost button.",
+                solution: { power: "outlet-120v", device: "fan-large", button: "momentary", switch: "dpdt" },
+                required: ["power", "device", "button", "switch"],
+                payment: 75,
+                hints: [
+                    "Ceiling fans connect to standard house wiring",
+                    "DPDT switches provide multiple fan speeds",
+                    "Momentary buttons can provide temporary boost"
+                ]
+            },
+            {
+                name: "Mike's Garage",
+                problem: "Simple battery work light - just needs basic power and an on/off switch.",
+                solution: { power: "battery-1.5v", device: "bulb-3w", switch: "spst" },
+                required: ["power", "device", "switch"],
+                payment: 30,
+                hints: [
+                    "Portable work lights use battery power",
+                    "Lower voltage saves battery life",
+                    "Basic switches are perfect for work lights"
+                ]
+            },
+            {
+                name: "Lisa's Office",
+                problem: "Small desk fan that only runs when I press and hold the button. Battery powered for portability.",
+                solution: { power: "battery-1.5v", device: "fan-small", button: "momentary" },
+                required: ["power", "device", "button"],
+                payment: 40,
+                hints: [
+                    "Desktop fans often use battery power",
+                    "Momentary buttons are perfect for press-and-hold operation",
+                    "Small fans work fine with lower voltage"
+                ]
+            },
+            {
+                name: "Dave's Electronics Lab",
+                problem: "Need a small electric heater with current limiting. It plugs into a standard outlet.",
+                solution: { power: "outlet-120v", device: "fire-small", resistor: "220" },
+                required: ["power", "device", "resistor"],
+                payment: 60,
+                hints: [
+                    "Lab equipment uses standard wall power",
+                    "Resistors prevent excessive current draw",
+                    "Small heaters work fine on 120V"
+                ]
+            },
+            {
+                name: "Carol's Kitchen",
+                problem: "My large microwave needs a heavy-duty connection and thermal protection.",
+                solution: { power: "outlet-120v", cord: "heavy", device: "microwave-large", thermistor: "ntc" },
+                required: ["power", "cord", "device", "thermistor"],
+                payment: 100,
+                hints: [
+                    "Large appliances need heavy-duty power cords",
+                    "Kitchen outlets provide standard 120V power",
+                    "NTC thermistors prevent overheating"
+                ]
+            },
+            {
+                name: "Steve's Workshop",
+                problem: "Bright work light with dimmer control. Needs to plug into wall outlet.",
+                solution: { power: "outlet-120v", device: "bulb-10w", capacitor: "100uf", switch: "dpdt" },
+                required: ["power", "device", "capacitor", "switch"],
+                payment: 70,
+                hints: [
+                    "Workshop lights use wall outlet power",
+                    "DPDT switches enable dimming control",
+                    "Capacitors reduce flickering in dimmed lights"
+                ]
+            },
+            {
+                name: "Janet's Bakery",
+                problem: "Industrial mixer motor needs high-voltage power and current protection.",
+                solution: { power: "outlet-240v", cord: "heavy", device: "fan-large", resistor: "100" },
+                required: ["power", "cord", "device", "resistor"],
+                payment: 120,
+                hints: [
+                    "Industrial equipment needs 240V power",
+                    "Heavy-duty cords handle high current",
+                    "Motors need current limiting protection"
+                ]
+            },
+            {
+                name: "Rick's Repair Shop",
+                problem: "Portable LED work light for battery operation with simple on/off control.",
+                solution: { power: "battery-9v", device: "bulb-5w", switch: "spst" },
+                required: ["power", "device", "switch"],
+                payment: 50,
+                hints: [
+                    "Portable lights need battery power",
+                    "9V provides good brightness for work lights",
+                    "Simple switches are reliable for shop use"
+                ]
+            }
+        ];
+
+        // Data SDK handler
+        const dataHandler = {
+            onDataChanged(data) {
+                gameData = data;
+                updateJobsDisplay();
+            }
+        };
+
+        // Element SDK configuration
+        const elementConfig = {
+            defaultConfig,
+            onConfigChange: async (config) => {
+                const shopTitle = document.getElementById('shopTitle');
+                const welcomeMessage = document.getElementById('welcomeMessage');
+                
+                if (shopTitle) {
+                    shopTitle.textContent = config.shop_name || defaultConfig.shop_name;
+                }
+                if (welcomeMessage) {
+                    welcomeMessage.textContent = config.welcome_message || defaultConfig.welcome_message;
+                }
+            },
+            mapToCapabilities: (config) => ({
+                recolorables: [
+                    {
+                        get: () => config.primary_color || "#2c3e50",
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ primary_color: value });
+                            }
+                        }
+                    },
+                    {
+                        get: () => config.accent_color || "#4caf50",
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ accent_color: value });
+                            }
+                        }
+                    }
+                ],
+                borderables: [],
+                fontEditable: {
+                    get: () => config.font_family || "Roboto",
+                    set: (value) => {
+                        if (window.elementSdk) {
+                            window.elementSdk.setConfig({ font_family: value });
+                        }
+                    }
+                },
+                fontSizeable: {
+                    get: () => config.font_size || 16,
+                    set: (value) => {
+                        if (window.elementSdk) {
+                            window.elementSdk.setConfig({ font_size: value });
+                        }
+                    }
+                }
+            }),
+            mapToEditPanelValues: (config) => new Map([
+                ["shop_name", config.shop_name || defaultConfig.shop_name],
+                ["welcome_message", config.welcome_message || defaultConfig.welcome_message]
+            ])
+        };
+
+        // Initialize SDKs
+        async function initializeGame() {
+            try {
+                // Initialize Element SDK
+                if (window.elementSdk) {
+                    await window.elementSdk.init(elementConfig);
+                }
+
+                // Initialize Data SDK
+                if (window.dataSdk) {
+                    const result = await window.dataSdk.init(dataHandler);
+                    if (!result.isOk) {
+                        console.error("Failed to initialize data SDK");
+                    }
+                }
+
+                setupEventListeners();
+                generateNewCustomer();
+            } catch (error) {
+                console.error("Failed to initialize game:", error);
+                setupEventListeners();
+                generateNewCustomer();
+            }
+        }
+
+        function setupEventListeners() {
+            // Part selection
+            document.querySelectorAll('.part-item').forEach(item => {
+                item.addEventListener('click', () => selectPart(item));
+            });
+
+            // Action buttons
+            document.getElementById('testCircuitBtn').addEventListener('click', testCircuit);
+            document.getElementById('completeJobBtn').addEventListener('click', completeJob);
+            document.getElementById('newCustomerBtn').addEventListener('click', generateNewCustomer);
+            document.getElementById('buyHintBtn').addEventListener('click', buyHint);
+        }
+
+        function selectPart(partElement) {
+            const partType = partElement.dataset.part;
+            const parts = partType.split('-');
+            
+            // Handle different part naming patterns
+            let category, spec;
+            if (parts[0] === 'power') {
+                category = 'power';
+                spec = parts.slice(1).join('-'); // battery-1.5v, outlet-120v, etc.
+            } else if (parts[0] === 'device') {
+                category = 'device';
+                spec = parts.slice(1).join('-'); // bulb-3w, fan-small, etc.
+            } else {
+                category = parts[0];
+                spec = parts.slice(1).join('-');
+            }
+
+            // Remove previous selection in this category
+            document.querySelectorAll(`.part-item[data-part^="${category}"]`).forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            // Select this part
+            partElement.classList.add('selected');
+            selectedParts[category] = spec;
+
+            // Update circuit display
+            updateCircuitDisplay(category, spec);
+            
+            // Check if we can test the circuit
+            updateButtonStates();
+        }
+
+        function updateCircuitDisplay(category, spec) {
+            const icons = {
+                power: { 
+                    'battery-1.5v': '🔋', 'battery-9v': '🔋',
+                    'outlet-120v': '🔌', 'outlet-240v': '⚡'
+                },
+                cord: { 'standard': '🔗', 'heavy': '🔗' },
+                resistor: { '100': '⚡', '220': '⚡' },
+                device: { 
+                    'bulb-3w': '💡', 'bulb-5w': '💡', 'bulb-10w': '💡',
+                    'fan-small': '🌀', 'fan-large': '🌀',
+                    'fire-small': '🔥', 'fire-medium': '🔥',
+                    'microwave-small': '📱', 'microwave-large': '📱'
+                },
+                thermistor: { 'ntc': '🌡️', 'ptc': '🌡️' },
+                capacitor: { '10uf': '🔌', '100uf': '🔌' },
+                button: { 'momentary': '🔘', 'toggle': '🔘' },
+                switch: { 'spst': '🎚️', 'dpdt': '🎚️' }
+            };
+
+            const labels = {
+                power: { 
+                    'battery-1.5v': '1.5V Battery', 'battery-9v': '9V Battery',
+                    'outlet-120v': '120V Wall Outlet', 'outlet-240v': '240V High Voltage'
+                },
+                cord: { 'standard': 'Standard Power Cord', 'heavy': 'Heavy Duty Cord' },
+                resistor: { '100': '100Ω Resistor', '220': '220Ω Resistor' },
+                device: { 
+                    'bulb-3w': '3W LED Bulb', 'bulb-5w': '5W LED Bulb', 'bulb-10w': '10W LED Bulb',
+                    'fan-small': 'Small Fan', 'fan-large': 'Large Fan',
+                    'fire-small': 'Small Heater', 'fire-medium': 'Medium Heater',
+                    'microwave-small': 'Small Microwave', 'microwave-large': 'Large Microwave'
+                },
+                thermistor: { 'ntc': 'NTC Thermistor', 'ptc': 'PTC Thermistor' },
+                capacitor: { '10uf': '10µF Capacitor', '100uf': '100µF Capacitor' },
+                button: { 'momentary': 'Momentary Button', 'toggle': 'Toggle Button' },
+                switch: { 'spst': 'SPST Switch', 'dpdt': 'DPDT Switch' }
+            };
+
+            const iconElement = document.getElementById(`${category}Icon`);
+            const labelElement = document.getElementById(`${category}Label`);
+            
+            if (iconElement && icons[category] && icons[category][spec]) {
+                iconElement.textContent = icons[category][spec];
+            }
+            
+            if (labelElement && labels[category] && labels[category][spec]) {
+                labelElement.textContent = labels[category][spec];
+            }
+        }
+
+        function updateButtonStates() {
+            // Check if all required components are selected for current customer
+            let allRequiredSelected = true;
+            if (currentCustomer && currentCustomer.required) {
+                for (const component of currentCustomer.required) {
+                    if (!selectedParts[component]) {
+                        allRequiredSelected = false;
+                        break;
+                    }
+                }
+            }
+            
+            document.getElementById('testCircuitBtn').disabled = !allRequiredSelected;
+            
+            // Update hint button based on earnings
+            const hintBtn = document.getElementById('buyHintBtn');
+            hintBtn.disabled = totalEarnings < 100;
+            hintBtn.textContent = totalEarnings < 100 ? '💡 Need $100 for Hint' : '💡 Buy Hint ($100)';
+        }
+
+        function testCircuit() {
+            if (!currentCustomer) return;
+
+            // Check if all required components match the solution
+            let isCorrect = true;
+            const issues = [];
+            
+            for (const component of currentCustomer.required) {
+                if (selectedParts[component] !== currentCustomer.solution[component]) {
+                    isCorrect = false;
+                    
+                    // Add specific error messages
+                    switch (component) {
+                        case 'thermistor':
+                            issues.push('thermal protection needed');
+                            break;
+                        case 'capacitor':
+                            issues.push('power smoothing required');
+                            break;
+                        case 'switch':
+                            issues.push('wrong switch type');
+                            break;
+                        case 'button':
+                            issues.push('incorrect button type');
+                            break;
+                        case 'battery':
+                            issues.push('wrong battery voltage');
+                            break;
+                        case 'resistor':
+                            issues.push('incorrect resistance value');
+                            break;
+                        case 'device':
+                            issues.push('wrong device type or size');
+                            break;
+                    }
+                }
+            }
+            
+            // Also check that no extra components are selected that aren't required
+            for (const [component, value] of Object.entries(selectedParts)) {
+                if (value && !currentCustomer.required.includes(component)) {
+                    isCorrect = false;
+                    issues.push(`${component} not needed for this job`);
+                }
+            }
+
+            const feedbackElement = document.getElementById('feedbackMessage');
+            const deviceIcon = document.getElementById('deviceIcon');
+
+            if (isCorrect) {
+                feedbackElement.innerHTML = '<div class="feedback-message success">✅ Perfect! The circuit works exactly as needed!</div>';
+                deviceIcon.classList.add('bulb-glow');
+                document.getElementById('completeJobBtn').disabled = false;
+            } else {
+                let errorMessage = '❌ Circuit issues: ';
+                errorMessage += issues.join(', ');
+                
+                feedbackElement.innerHTML = `<div class="feedback-message error">${errorMessage}</div>`;
+                deviceIcon.classList.remove('bulb-glow');
+                document.getElementById('completeJobBtn').disabled = true;
+            }
+        }
+
+        function buyHint() {
+            if (!currentCustomer || totalEarnings < 100) return;
+            
+            // Deduct money
+            totalEarnings -= 100;
+            hintsUsed++;
+            
+            // Update display
+            document.getElementById('moneyAmount').textContent = `$${totalEarnings}`;
+            updateButtonStates();
+            
+            // Show random hint
+            const randomHint = currentCustomer.hints[Math.floor(Math.random() * currentCustomer.hints.length)];
+            document.getElementById('hintContent').textContent = `💡 Hint: ${randomHint}`;
+            document.getElementById('hintDisplay').style.display = 'block';
+            
+            // Hide hint after 10 seconds
+            setTimeout(() => {
+                document.getElementById('hintDisplay').style.display = 'none';
+            }, 10000);
+        }
+
+        async function completeJob() {
+            if (!currentCustomer) return;
+
+            const button = document.getElementById('completeJobBtn');
+            button.disabled = true;
+            button.classList.add('loading');
+
+            try {
+                // Save job to data SDK
+                if (window.dataSdk && gameData.length < 999) {
+                    const jobRecord = {
+                        customer_name: currentCustomer.name,
+                        problem: currentCustomer.problem,
+                        solution: `Complete circuit with thermal protection and switching`,
+                        parts_used: `Battery: ${selectedParts.battery}V, Device: ${selectedParts.device}, Resistor: ${selectedParts.resistor}Ω, Thermistor: ${selectedParts.thermistor}, Capacitor: ${selectedParts.capacitor}, Button: ${selectedParts.button}, Switch: ${selectedParts.switch}`,
+                        payment: currentCustomer.payment,
+                        completed: true,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    const result = await window.dataSdk.create(jobRecord);
+                    if (!result.isOk) {
+                        console.error("Failed to save job:", result.error);
+                    }
+                } else if (gameData.length >= 999) {
+                    document.getElementById('feedbackMessage').innerHTML = 
+                        '<div class="feedback-message error">⚠️ Maximum limit of 999 jobs reached. Please start a new game.</div>';
+                    return;
+                }
+
+                // Update local state
+                totalEarnings += currentCustomer.payment;
+                jobsCompleted++;
+                
+                // Update display
+                document.getElementById('moneyAmount').textContent = `$${totalEarnings}`;
+                document.getElementById('jobsCount').textContent = jobsCompleted;
+
+                // Show success message
+                document.getElementById('feedbackMessage').innerHTML = 
+                    `<div class="feedback-message success">🎉 Job completed! Earned $${currentCustomer.payment}</div>`;
+
+                // Reset for next customer
+                setTimeout(() => {
+                    generateNewCustomer();
+                }, 2000);
+
+            } catch (error) {
+                console.error("Error completing job:", error);
+                document.getElementById('feedbackMessage').innerHTML = 
+                    '<div class="feedback-message error">❌ Error saving job. Please try again.</div>';
+            } finally {
+                button.classList.remove('loading');
+            }
+        }
+
+        function updateComponentRequirements() {
+            if (!currentCustomer) return;
+            
+            const allComponents = ['power', 'cord', 'resistor', 'device', 'thermistor', 'capacitor', 'button', 'switch'];
+            
+            // Reset all components to normal state
+            allComponents.forEach(component => {
+                const element = document.getElementById(`${component}Element`);
+                if (element) {
+                    element.classList.remove('optional');
+                }
+            });
+            
+            // Mark optional components
+            allComponents.forEach(component => {
+                if (!currentCustomer.required.includes(component)) {
+                    const element = document.getElementById(`${component}Element`);
+                    if (element) {
+                        element.classList.add('optional');
+                    }
+                }
+            });
+        }
+
+        function generateNewCustomer() {
+            // Reset circuit
+            document.querySelectorAll('.part-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            selectedParts = { power: null, cord: null, resistor: null, device: null, thermistor: null, capacitor: null, button: null, switch: null };
+            
+            // Reset circuit display
+            document.getElementById('powerIcon').textContent = '⚡';
+            document.getElementById('powerLabel').textContent = 'Select Power Source';
+            document.getElementById('cordIcon').textContent = '🔗';
+            document.getElementById('cordLabel').textContent = 'Select Power Cord';
+            document.getElementById('resistorIcon').textContent = '⚡';
+            document.getElementById('resistorLabel').textContent = 'Select Resistor';
+            document.getElementById('deviceIcon').textContent = '💡';
+            document.getElementById('deviceLabel').textContent = 'Select Device';
+            document.getElementById('thermistorIcon').textContent = '🌡️';
+            document.getElementById('thermistorLabel').textContent = 'Select Thermistor';
+            document.getElementById('capacitorIcon').textContent = '🔌';
+            document.getElementById('capacitorLabel').textContent = 'Select Capacitor';
+            document.getElementById('buttonIcon').textContent = '🔘';
+            document.getElementById('buttonLabel').textContent = 'Select Button';
+            document.getElementById('switchIcon').textContent = '🎚️';
+            document.getElementById('switchLabel').textContent = 'Select Switch';
+            document.getElementById('deviceIcon').classList.remove('bulb-glow');
+            
+            // Generate new customer
+            currentCustomer = customerProblems[Math.floor(Math.random() * customerProblems.length)];
+            
+            // Update component requirements display
+            updateComponentRequirements();
+            
+            // Update customer display
+            document.getElementById('customerName').textContent = currentCustomer.name;
+            document.getElementById('problemDescription').textContent = currentCustomer.problem;
+            document.getElementById('customerCard').style.display = 'block';
+            
+            // Reset buttons and feedback
+            document.getElementById('testCircuitBtn').disabled = true;
+            document.getElementById('completeJobBtn').disabled = true;
+            document.getElementById('feedbackMessage').innerHTML = '';
+            document.getElementById('hintDisplay').style.display = 'none';
+            
+            // Update button states
+            updateButtonStates();
+        }
+
+        function updateJobsDisplay() {
+            const completedJobs = gameData.filter(job => job.completed).length;
+            const totalEarningsFromData = gameData.reduce((sum, job) => sum + (job.payment || 0), 0);
+            
+            document.getElementById('jobsCount').textContent = completedJobs;
+            document.getElementById('moneyAmount').textContent = `$${totalEarningsFromData}`;
+            
+            jobsCompleted = completedJobs;
+            totalEarnings = totalEarningsFromData;
+        }
+
+        // Initialize the game when page loads
+        document.addEventListener('DOMContentLoaded', initializeGame);
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99e3df4c0359fb1f',t:'MTc2MzA5NTY2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
