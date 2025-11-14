@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Electrician Shop Game</title>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Roboto', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100%;
+            color: #333;
+        }
+        
+        .shop-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .shop-header {
+            background: #2c3e50;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .shop-title {
+            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+            font-weight: bold;
+        }
+        
+        .welcome-text {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+        
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            min-height: 500px;
+        }
+        
+        .inventory-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            text-align: center;
+        }
+        
+        .part-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            margin: 8px 0;
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .part-item:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            transform: translateY(-2px);
+        }
+        
+        .part-item.selected {
+            background: #2196f3;
+            color: white;
+            border-color: #1976d2;
+        }
+        
+        .part-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+        
+        .part-info {
+            flex: 1;
+        }
+        
+        .part-name {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .part-spec {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        .work-area {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            text-align: center;
+        }
+        
+        .customer-card {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ff6b6b;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .customer-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .problem-description {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .circuit-display {
+            background: #2c3e50;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .circuit-element {
+            margin: 0 15px;
+            text-align: center;
+            color: #ffffff;
+        }
+        
+        .circuit-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .circuit-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .wire {
+            height: 3px;
+            background: #ffd700;
+            flex: 1;
+            margin: 0 10px;
+            align-self: center;
+        }
+        
+        .bulb-glow {
+            animation: glow 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #ffeb3b; }
+            to { text-shadow: 0 0 20px #ffeb3b, 0 0 30px #ffeb3b; }
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #f57c00;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .money-display {
+            background: #4caf50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .money-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .jobs-completed {
+            text-align: center;
+            color: #666;
+        }
+        
+        .new-customer-btn {
+            width: 100%;
+            margin-top: 15px;
+        }
+        
+        .feedback-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .shop-title {
+                font-size: 2rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="shop-container">
+   <div class="shop-header">
+    <h1 class="shop-title" id="shopTitle">⚡ Spark &amp; Fix Electrical</h1>
+    <p class="welcome-text" id="welcomeMessage">Expert electrical repairs - We'll get your lights shining bright!</p>
+   </div>
+   <div class="game-area"><!-- Inventory Panel -->
+    <div class="inventory-panel">
+     <h3 class="panel-title">🔧 Parts Inventory</h3>
+     <div class="part-item" data-part="battery-1.5v"><span class="part-icon">🔋</span>
+      <div class="part-info">
+       <div class="part-name">
+        Battery
+       </div>
+       <div class="part-spec">
+        1.5V
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="battery-9v"><span class="part-icon">🔋</span>
+      <div class="part-info">
+       <div class="part-name">
+        Battery
+       </div>
+       <div class="part-spec">
+        9V
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="resistor-100"><span class="part-icon">⚡</span>
+      <div class="part-info">
+       <div class="part-name">
+        Resistor
+       </div>
+       <div class="part-spec">
+        100Ω
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="resistor-220"><span class="part-icon">⚡</span>
+      <div class="part-info">
+       <div class="part-name">
+        Resistor
+       </div>
+       <div class="part-spec">
+        220Ω
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="bulb-3w"><span class="part-icon">💡</span>
+      <div class="part-info">
+       <div class="part-name">
+        LED Bulb
+       </div>
+       <div class="part-spec">
+        3W
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="bulb-5w"><span class="part-icon">💡</span>
+      <div class="part-info">
+       <div class="part-name">
+        LED Bulb
+       </div>
+       <div class="part-spec">
+        5W
+       </div>
+      </div>
+     </div>
+     <div class="part-item" data-part="bulb-10w"><span class="part-icon">💡</span>
+      <div class="part-info">
+       <div class="part-name">
+        LED Bulb
+       </div>
+       <div class="part-spec">
+        10W
+       </div>
+      </div>
+     </div>
+    </div><!-- Work Area -->
+    <div class="work-area">
+     <div id="customerCard" class="customer-card" style="display: none;">
+      <div class="customer-name" id="customerName"></div>
+      <div class="problem-description" id="problemDescription"></div>
+     </div>
+     <div class="circuit-display" id="circuitDisplay">
+      <div class="circuit-element"><span class="circuit-icon" id="batteryIcon">🔋</span>
+       <div class="circuit-label" id="batteryLabel">
+        Select Battery
+       </div>
+      </div>
+      <div class="wire"></div>
+      <div class="circuit-element"><span class="circuit-icon" id="resistorIcon">⚡</span>
+       <div class="circuit-label" id="resistorLabel">
+        Select Resistor
+       </div>
+      </div>
+      <div class="wire"></div>
+      <div class="circuit-element"><span class="circuit-icon" id="bulbIcon">💡</span>
+       <div class="circuit-label" id="bulbLabel">
+        Select Bulb
+       </div>
+      </div>
+     </div>
+     <div id="feedbackMessage"></div>
+     <div class="action-buttons"><button class="btn btn-primary" id="testCircuitBtn" disabled>🔍 Test Circuit</button> <button class="btn btn-secondary" id="completeJobBtn" disabled>✅ Complete Job</button>
+     </div>
+    </div><!-- Status Panel -->
+    <div class="status-panel">
+     <div class="money-display">
+      <div>
+       💰 Earnings
+      </div>
+      <div class="money-amount" id="moneyAmount">
+       $0
+      </div>
+     </div>
+     <div class="jobs-completed"><strong>Jobs Completed: <span id="jobsCount">0</span></strong>
+     </div><button class="btn btn-primary new-customer-btn" id="newCustomerBtn">👥 New Customer</button>
+    </div>
+   </div>
+  </div>
+  <script>
+        // Default configuration
+        const defaultConfig = {
+            shop_name: "⚡ Spark & Fix Electrical",
+            welcome_message: "Expert electrical repairs - We'll get your lights shining bright!"
+        };
+
+        // Game state
+        let currentCustomer = null;
+        let selectedParts = {
+            battery: null,
+            resistor: null,
+            bulb: null
+        };
+        let totalEarnings = 0;
+        let jobsCompleted = 0;
+        let gameData = [];
+
+        // Customer problems and solutions
+        const customerProblems = [
+            {
+                name: "Mrs. Johnson",
+                problem: "My reading lamp is too dim. I need it brighter for my evening books.",
+                solution: { battery: "9v", resistor: "100", bulb: "10w" },
+                payment: 45
+            },
+            {
+                name: "Bob the Builder",
+                problem: "Need a small work light that won't drain my portable battery too quickly.",
+                solution: { battery: "1.5v", resistor: "220", bulb: "3w" },
+                payment: 30
+            },
+            {
+                name: "Sarah's Café",
+                problem: "Our decorative string lights keep burning out. Need something more reliable.",
+                solution: { battery: "9v", resistor: "220", bulb: "5w" },
+                payment: 60
+            },
+            {
+                name: "Tom's Workshop",
+                problem: "My desk lamp flickers constantly. It's driving me crazy!",
+                solution: { battery: "9v", resistor: "100", bulb: "5w" },
+                payment: 50
+            },
+            {
+                name: "Emma's Art Studio",
+                problem: "I need bright, consistent lighting for detailed painting work.",
+                solution: { battery: "9v", resistor: "100", bulb: "10w" },
+                payment: 70
+            }
+        ];
+
+        // Data SDK handler
+        const dataHandler = {
+            onDataChanged(data) {
+                gameData = data;
+                updateJobsDisplay();
+            }
+        };
+
+        // Element SDK configuration
+        const elementConfig = {
+            defaultConfig,
+            onConfigChange: async (config) => {
+                const shopTitle = document.getElementById('shopTitle');
+                const welcomeMessage = document.getElementById('welcomeMessage');
+                
+                if (shopTitle) {
+                    shopTitle.textContent = config.shop_name || defaultConfig.shop_name;
+                }
+                if (welcomeMessage) {
+                    welcomeMessage.textContent = config.welcome_message || defaultConfig.welcome_message;
+                }
+            },
+            mapToCapabilities: (config) => ({
+                recolorables: [
+                    {
+                        get: () => config.primary_color || "#2c3e50",
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ primary_color: value });
+                            }
+                        }
+                    },
+                    {
+                        get: () => config.accent_color || "#4caf50",
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ accent_color: value });
+                            }
+                        }
+                    }
+                ],
+                borderables: [],
+                fontEditable: {
+                    get: () => config.font_family || "Roboto",
+                    set: (value) => {
+                        if (window.elementSdk) {
+                            window.elementSdk.setConfig({ font_family: value });
+                        }
+                    }
+                },
+                fontSizeable: {
+                    get: () => config.font_size || 16,
+                    set: (value) => {
+                        if (window.elementSdk) {
+                            window.elementSdk.setConfig({ font_size: value });
+                        }
+                    }
+                }
+            }),
+            mapToEditPanelValues: (config) => new Map([
+                ["shop_name", config.shop_name || defaultConfig.shop_name],
+                ["welcome_message", config.welcome_message || defaultConfig.welcome_message]
+            ])
+        };
+
+        // Initialize SDKs
+        async function initializeGame() {
+            try {
+                // Initialize Element SDK
+                if (window.elementSdk) {
+                    await window.elementSdk.init(elementConfig);
+                }
+
+                // Initialize Data SDK
+                if (window.dataSdk) {
+                    const result = await window.dataSdk.init(dataHandler);
+                    if (!result.isOk) {
+                        console.error("Failed to initialize data SDK");
+                    }
+                }
+
+                setupEventListeners();
+                generateNewCustomer();
+            } catch (error) {
+                console.error("Failed to initialize game:", error);
+                setupEventListeners();
+                generateNewCustomer();
+            }
+        }
+
+        function setupEventListeners() {
+            // Part selection
+            document.querySelectorAll('.part-item').forEach(item => {
+                item.addEventListener('click', () => selectPart(item));
+            });
+
+            // Action buttons
+            document.getElementById('testCircuitBtn').addEventListener('click', testCircuit);
+            document.getElementById('completeJobBtn').addEventListener('click', completeJob);
+            document.getElementById('newCustomerBtn').addEventListener('click', generateNewCustomer);
+        }
+
+        function selectPart(partElement) {
+            const partType = partElement.dataset.part;
+            const [category, spec] = partType.split('-');
+
+            // Remove previous selection in this category
+            document.querySelectorAll(`.part-item[data-part^="${category}"]`).forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            // Select this part
+            partElement.classList.add('selected');
+            selectedParts[category] = spec;
+
+            // Update circuit display
+            updateCircuitDisplay(category, spec);
+            
+            // Check if we can test the circuit
+            updateButtonStates();
+        }
+
+        function updateCircuitDisplay(category, spec) {
+            const icons = {
+                battery: { '1.5v': '🔋', '9v': '🔋' },
+                resistor: { '100': '⚡', '220': '⚡' },
+                bulb: { '3w': '💡', '5w': '💡', '10w': '💡' }
+            };
+
+            const labels = {
+                battery: { '1.5v': '1.5V Battery', '9v': '9V Battery' },
+                resistor: { '100': '100Ω Resistor', '220': '220Ω Resistor' },
+                bulb: { '3w': '3W LED', '5w': '5W LED', '10w': '10W LED' }
+            };
+
+            document.getElementById(`${category}Icon`).textContent = icons[category][spec];
+            document.getElementById(`${category}Label`).textContent = labels[category][spec];
+        }
+
+        function updateButtonStates() {
+            const allSelected = selectedParts.battery && selectedParts.resistor && selectedParts.bulb;
+            document.getElementById('testCircuitBtn').disabled = !allSelected;
+        }
+
+        function testCircuit() {
+            if (!currentCustomer) return;
+
+            const isCorrect = 
+                selectedParts.battery === currentCustomer.solution.battery &&
+                selectedParts.resistor === currentCustomer.solution.resistor &&
+                selectedParts.bulb === currentCustomer.solution.bulb;
+
+            const feedbackElement = document.getElementById('feedbackMessage');
+            const bulbIcon = document.getElementById('bulbIcon');
+
+            if (isCorrect) {
+                feedbackElement.innerHTML = '<div class="feedback-message success">✅ Perfect! The circuit works great!</div>';
+                bulbIcon.classList.add('bulb-glow');
+                document.getElementById('completeJobBtn').disabled = false;
+            } else {
+                feedbackElement.innerHTML = '<div class="feedback-message error">❌ Something\'s not right. Try different components!</div>';
+                bulbIcon.classList.remove('bulb-glow');
+                document.getElementById('completeJobBtn').disabled = true;
+            }
+        }
+
+        async function completeJob() {
+            if (!currentCustomer) return;
+
+            const button = document.getElementById('completeJobBtn');
+            button.disabled = true;
+            button.classList.add('loading');
+
+            try {
+                // Save job to data SDK
+                if (window.dataSdk && gameData.length < 999) {
+                    const jobRecord = {
+                        customer_name: currentCustomer.name,
+                        problem: currentCustomer.problem,
+                        solution: `${selectedParts.battery}V battery, ${selectedParts.resistor}Ω resistor, ${selectedParts.bulb} bulb`,
+                        parts_used: `Battery: ${selectedParts.battery}V, Resistor: ${selectedParts.resistor}Ω, Bulb: ${selectedParts.bulb}`,
+                        payment: currentCustomer.payment,
+                        completed: true,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    const result = await window.dataSdk.create(jobRecord);
+                    if (!result.isOk) {
+                        console.error("Failed to save job:", result.error);
+                    }
+                } else if (gameData.length >= 999) {
+                    document.getElementById('feedbackMessage').innerHTML = 
+                        '<div class="feedback-message error">⚠️ Maximum limit of 999 jobs reached. Please start a new game.</div>';
+                    return;
+                }
+
+                // Update local state
+                totalEarnings += currentCustomer.payment;
+                jobsCompleted++;
+                
+                // Update display
+                document.getElementById('moneyAmount').textContent = `$${totalEarnings}`;
+                document.getElementById('jobsCount').textContent = jobsCompleted;
+
+                // Show success message
+                document.getElementById('feedbackMessage').innerHTML = 
+                    `<div class="feedback-message success">🎉 Job completed! Earned $${currentCustomer.payment}</div>`;
+
+                // Reset for next customer
+                setTimeout(() => {
+                    generateNewCustomer();
+                }, 2000);
+
+            } catch (error) {
+                console.error("Error completing job:", error);
+                document.getElementById('feedbackMessage').innerHTML = 
+                    '<div class="feedback-message error">❌ Error saving job. Please try again.</div>';
+            } finally {
+                button.classList.remove('loading');
+            }
+        }
+
+        function generateNewCustomer() {
+            // Reset circuit
+            document.querySelectorAll('.part-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            selectedParts = { battery: null, resistor: null, bulb: null };
+            
+            // Reset circuit display
+            document.getElementById('batteryIcon').textContent = '🔋';
+            document.getElementById('batteryLabel').textContent = 'Select Battery';
+            document.getElementById('resistorIcon').textContent = '⚡';
+            document.getElementById('resistorLabel').textContent = 'Select Resistor';
+            document.getElementById('bulbIcon').textContent = '💡';
+            document.getElementById('bulbLabel').textContent = 'Select Bulb';
+            document.getElementById('bulbIcon').classList.remove('bulb-glow');
+            
+            // Generate new customer
+            currentCustomer = customerProblems[Math.floor(Math.random() * customerProblems.length)];
+            
+            // Update customer display
+            document.getElementById('customerName').textContent = currentCustomer.name;
+            document.getElementById('problemDescription').textContent = currentCustomer.problem;
+            document.getElementById('customerCard').style.display = 'block';
+            
+            // Reset buttons and feedback
+            document.getElementById('testCircuitBtn').disabled = true;
+            document.getElementById('completeJobBtn').disabled = true;
+            document.getElementById('feedbackMessage').innerHTML = '';
+        }
+
+        function updateJobsDisplay() {
+            const completedJobs = gameData.filter(job => job.completed).length;
+            const totalEarningsFromData = gameData.reduce((sum, job) => sum + (job.payment || 0), 0);
+            
+            document.getElementById('jobsCount').textContent = completedJobs;
+            document.getElementById('moneyAmount').textContent = `$${totalEarningsFromData}`;
+            
+            jobsCompleted = completedJobs;
+            totalEarnings = totalEarningsFromData;
+        }
+
+        // Initialize the game when page loads
+        document.addEventListener('DOMContentLoaded', initializeGame);
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99e3f71566eef7e8',t:'MTc2MzA5NjYzNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
