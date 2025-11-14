@@ -992,17 +992,27 @@
                 spec = parts.slice(1).join('-');
             }
 
-            // Remove previous selection in this category
-            document.querySelectorAll(`.part-item[data-part^="${category}"]`).forEach(item => {
-                item.classList.remove('selected');
-            });
+            // Check if this part is already selected
+            if (partElement.classList.contains('selected')) {
+                // Deselect the part
+                partElement.classList.remove('selected');
+                selectedParts[category] = null;
+                
+                // Reset circuit display for this category
+                resetCircuitDisplay(category);
+            } else {
+                // Remove previous selection in this category
+                document.querySelectorAll(`.part-item[data-part^="${category}"]`).forEach(item => {
+                    item.classList.remove('selected');
+                });
 
-            // Select this part
-            partElement.classList.add('selected');
-            selectedParts[category] = spec;
+                // Select this part
+                partElement.classList.add('selected');
+                selectedParts[category] = spec;
 
-            // Update circuit display
-            updateCircuitDisplay(category, spec);
+                // Update circuit display
+                updateCircuitDisplay(category, spec);
+            }
             
             // Check if we can test the circuit
             updateButtonStates();
@@ -1056,6 +1066,46 @@
             
             if (labelElement && labels[category] && labels[category][spec]) {
                 labelElement.textContent = labels[category][spec];
+            }
+        }
+
+        function resetCircuitDisplay(category) {
+            const defaultIcons = {
+                power: '⚡',
+                cord: '🔗',
+                resistor: '⚡',
+                device: '💡',
+                thermistor: '🌡️',
+                capacitor: '🔌',
+                button: '🔘',
+                switch: '🎚️'
+            };
+
+            const defaultLabels = {
+                power: 'Select Power Source',
+                cord: 'Select Power Cord',
+                resistor: 'Select Resistor',
+                device: 'Select Device',
+                thermistor: 'Select Thermistor',
+                capacitor: 'Select Capacitor',
+                button: 'Select Button',
+                switch: 'Select Switch'
+            };
+
+            const iconElement = document.getElementById(`${category}Icon`);
+            const labelElement = document.getElementById(`${category}Label`);
+            
+            if (iconElement && defaultIcons[category]) {
+                iconElement.textContent = defaultIcons[category];
+            }
+            
+            if (labelElement && defaultLabels[category]) {
+                labelElement.textContent = defaultLabels[category];
+            }
+
+            // Remove any special effects
+            if (category === 'device') {
+                iconElement.classList.remove('bulb-glow');
             }
         }
 
@@ -1306,5 +1356,5 @@
         // Initialize the game when page loads
         document.addEventListener('DOMContentLoaded', initializeGame);
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99e3df4c0359fb1f',t:'MTc2MzA5NTY2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99e3edfdc72bf7e8',t:'MTc2MzA5NjI2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
